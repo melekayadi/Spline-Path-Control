@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spline Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="sketch.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="controls">
+    <h2>Spline Editor</h2>
+    
+    <div class="main-content">
+      <!-- Spline Controls Sidebar -->
+      <div id="spline-controls" class="spline-controls">
+        <h3>Selected Spline Control</h3>
+        
+        <!-- Spline Controls -->
+        <div class="control-group">
+          <label for="selectedFPS">FPS:</label>
+          <input type="number" id="selectedFPS" min="1" max="60" value="16">
+        </div>
+        <div class="control-group">
+          <label for="selectedDuration">Seconds:</label>
+          <input type="number" id="selectedDuration" min="0.1" max="60" step="0.1" value="5">
+        </div>
+        <div class="control-group">
+          <label for="selectedSize">Size:</label>
+          <input type="number" id="selectedSize" min="1" max="100" value="30">
+        </div>
+        <div class="control-group">
+          <label for="selectedType">Shape:</label>
+          <select id="selectedType">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="selectedFillColor">Fill:</label>
+          <input type="color" id="selectedFillColor" value="#ffffff">
+        </div>
+        <div class="control-group">
+          <label for="selectedStrokeColor">Border:</label>
+          <input type="color" id="selectedStrokeColor" value="#000000">
+        </div>
+        <div class="control-group">
+          <label for="selectedStrokeWeight">Width:</label>
+          <input type="number" id="selectedStrokeWeight" min="0" max="10" value="1">
+        </div>
+        <div class="control-group">
+          <label for="selectedTension">Tension:</label>
+          <input type="number" id="selectedTension" min="0" max="1" step="0.1" value="0">
+        </div>
+        
+        <!-- Divider above Canvas Settings -->
+        <div class="section-divider">Canvas Settings</div>
+        
+        <!-- Canvas Controls -->
+        <div class="control-group">
+          <label for="canvasWidth">Width:</label>
+          <input type="number" id="canvasWidth" min="100" max="2000" value="800">
+        </div>
+        <div class="control-group">
+          <label for="canvasHeight">Height:</label>
+          <input type="number" id="canvasHeight" min="100" max="2000" value="600">
+        </div>
+        <div class="control-group">
+          <button id="updateCanvasSize">Update Canvas</button>
+        </div>
+        
+        <div class="control-group">
+        <button id="resetCanvasSize">Reset Canvas Size</button>
+      </div>
+        
+        <!-- New divider below Update Canvas button -->
+        <div class="section-divider">Background Image</div>
+        
+        <!-- Image Controls -->
+        <div class="control-group">
+          <input type="file" id="bgImage" accept="image/*">
+        </div>
+        <div class="control-group">
+          <button id="clearBg">Clear Background</button>
+        </div>
+      </div>
+      
+      <div class="canvas-area">
+        <!-- Updated canvas container structure -->
+        <div id="canvas-container">
+          <!-- The canvas will be created here by p5.js -->
+        </div>
+        
+        <!-- Spline Management Buttons -->
+        <div class="spline-management">
+        <button id="newSpline">New Spline</button>
+        <button id="deleteSpline">Delete Spline</button>
+        <button id="addPoint">Add Point</button>
+        <button id="removePoint">Remove Point</button>
+        <button id="clearAll">Clear All</button>
+      </div>
+        
+        <!-- Export Controls -->
+        <div class="export-container">
+        <div class="export-settings">
+          <div class="control-group">
+            <label for="exportFPS">Export FPS:</label>
+            <input type="number" id="exportFPS" min="1" max="120" value="16">
+          </div>
+          <div class="control-group">
+            <label for="exportSeconds">Length (s):</label>
+            <input type="number" id="exportSeconds" min="0.1" max="300" step="0.1" value="5">
+          </div>
+        </div>
+
+        <div class="export-controls">
+          <button id="exportVideo">Export Video</button>
+          <button id="cancelExport">Cancel Export</button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

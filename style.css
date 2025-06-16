@@ -1,0 +1,229 @@
+/* --- A Modern, Minimal Light Theme for the Spline Editor --- */
+
+/* 1. CSS Variables for Easy Theming */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Light Theme Palette */
+  --bg-main: #f4f7f9;         /* Soft light gray background for the page */
+  --bg-surface: #ffffff;      /* Pure white for containers */
+  --bg-controls: #f0f2f5;     /* Slightly off-white for the control sidebar */
+  --text-primary: #212529;    /* Dark, readable text color */
+  --text-secondary: #6c757d;  /* Lighter gray for labels */
+  --border-color: #dee2e6;    /* Subtle light gray border color */
+
+  --accent-primary: #007bff;  /* A crisp, modern blue for primary actions */
+  --accent-primary-hover: #0069d9;
+  --accent-danger: #dc3545;   /* A clear red for destructive actions */
+  --accent-danger-hover: #c82333;
+  --accent-neutral: #e9ecef;   /* Neutral light gray button color */
+  --accent-neutral-hover: #dde1e4;
+}
+
+/* 2. Global Resets & Body Styling */
+body {
+  margin: 0;
+  padding: 10px;
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+h2 {
+  margin-top: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+}
+
+h3 {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-top: 0;
+}
+
+/* 3. Main Layout Structure */
+.controls {
+  padding: 20px;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Softer shadow for light theme */
+}
+
+.main-content {
+  display: flex;
+  gap: 20px;
+  margin-top: 1px;
+}
+
+#spline-controls {
+  width: 280px;
+  padding: 20px;
+  background: var(--bg-controls);
+  border-radius: 8px;
+  border: 1px solid var(--border-color); /* Added border back for visual consistency with shadow */
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.03); /* Subtle shadow for the sidebar */
+  flex-shrink: 0;
+}
+
+.canvas-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#canvas-container {
+  position: relative;
+  max-width: 100%;
+  margin: 0;
+  background-color: var(--bg-main); /* Match page background */
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.03); /* Subtle shadow for the canvas */
+  overflow: hidden;
+}
+
+#canvas-container canvas {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* 4. Control & Input Styling */
+.section-divider {
+  font-weight: 600;
+  margin: 25px 0 15px 0;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.control-group {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  min-width: 70px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Unified style for all inputs and selects */
+input[type="number"],
+input[type="file"],
+select {
+  flex-grow: 1;
+  padding: 8px 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Softer focus ring for light mode */
+}
+
+input[type="color"] {
+  min-width: 40px;
+  height: 35px;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+/* 5. Button Styling */
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s, border-color 0.2s; /* Added transition for shadow */
+  white-space: nowrap;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#spline-controls button {
+  width: 100%;
+}
+
+.spline-management {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.export-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+}
+
+.export-settings,
+.export-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Button Color Themes */
+/* Primary Actions (Blue) */
+#exportVideo, #updateCanvasSize, #newSpline, #addPoint {
+  background-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+#exportVideo:hover, #updateCanvasSize:hover, #newSpline:hover, #addPoint:hover {
+  background-color: var(--accent-primary-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Destructive/Danger Actions (Red) */
+#cancelExport, #clearAll, #clearBg, #resetCanvasSize {
+  background-color: var(--accent-danger);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+#cancelExport:hover, #clearAll:hover, #clearBg:hover, #resetCanvasSize:hover {
+  background-color: var(--accent-danger-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Neutral Actions (Gray) */
+#deleteSpline, #removePoint {
+  background-color: var(--accent-neutral);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+#deleteSpline:hover, #removePoint:hover {
+  background-color: var(--accent-neutral-hover);
+  border-color: #ced4da;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* --- End of Styles --- */
+.controls > h2 {
+  display: none;
+}
