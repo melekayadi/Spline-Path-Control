@@ -1,26 +1,35 @@
 /* --- A Modern, Minimal Light Theme for the Spline Editor --- */
 
-/* 1. CSS Variables for Easy Theming */
+/* 1. Global Box-Sizing Reset (THE KEY FIX) */
+/* This ensures padding and borders are included in element's total size */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/* 2. CSS Variables for Easy Theming */
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
+  
   /* Light Theme Palette */
-  --bg-main: #f4f7f9;         /* Soft light gray background for the page */
-  --bg-surface: #ffffff;      /* Pure white for containers */
-  --bg-controls: #f0f2f5;     /* Slightly off-white for the control sidebar */
-  --text-primary: #212529;    /* Dark, readable text color */
-  --text-secondary: #6c757d;  /* Lighter gray for labels */
-  --border-color: #dee2e6;    /* Subtle light gray border color */
-
-  --accent-primary: #007bff;  /* A crisp, modern blue for primary actions */
+  --bg-main: #f4f7f9;
+  --bg-surface: #ffffff;
+  --bg-controls: #f0f2f5;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  
+  --accent-primary: #007bff;
   --accent-primary-hover: #0069d9;
-  --accent-danger: #dc3545;   /* A clear red for destructive actions */
+  --accent-danger: #dc3545;
   --accent-danger-hover: #c82333;
-  --accent-neutral: #e9ecef;   /* Neutral light gray button color */
+  --accent-neutral: #e9ecef;
   --accent-neutral-hover: #dde1e4;
 }
 
-/* 2. Global Resets & Body Styling */
+/* 3. Global Resets & Body Styling */
 body {
   margin: 0;
   padding: 10px;
@@ -28,6 +37,10 @@ body {
   background-color: var(--bg-main);
   color: var(--text-primary);
   min-height: 100vh;
+
+  /* Make body a flex container to manage the main .controls block */
+  display: flex;
+  flex-direction: column;
 }
 
 h2 {
@@ -44,19 +57,28 @@ h3 {
   margin-top: 0;
 }
 
-/* 3. Main Layout Structure */
+/* 4. Main Layout Structure */
 .controls {
   padding: 20px;
   background: var(--bg-surface);
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Softer shadow for light theme */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+  /* Make the main white panel a flex container that grows */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; 
 }
 
 .main-content {
   display: flex;
   gap: 20px;
   margin-top: 1px;
+  
+  /* Make this section grow to fill the available space */
+  flex-grow: 1;
+  min-height: 0; /* Prevents overflow issues in flex children */
 }
 
 #spline-controls {
@@ -64,8 +86,8 @@ h3 {
   padding: 20px;
   background: var(--bg-controls);
   border-radius: 8px;
-  border: 1px solid var(--border-color); /* Added border back for visual consistency with shadow */
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.03); /* Subtle shadow for the sidebar */
+  border: 1px solid var(--border-color);
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.03);
   flex-shrink: 0;
 }
 
@@ -80,10 +102,10 @@ h3 {
   position: relative;
   max-width: 100%;
   margin: 0;
-  background-color: var(--bg-main); /* Match page background */
+  background-color: var(--bg-main);
   border-radius: 8px;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.03); /* Subtle shadow for the canvas */
-  overflow: hidden;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.03);
+  overflow: hidden; 
 }
 
 #canvas-container canvas {
@@ -91,14 +113,15 @@ h3 {
   max-width: 100%;
   height: auto !important;
 }
-
 /* 4. Control & Input Styling */
 .section-divider {
   font-weight: 600;
   margin: 25px 0 15px 0;
-  padding-top: 15px;
+  padding-top: 5px;
   border-top: 1px solid var(--border-color);
   color: var(--text-primary);
+  margin-bottom: 10px;
+  
 }
 
 .control-group {
@@ -115,9 +138,8 @@ h3 {
   font-size: 14px;
 }
 
-/* Unified style for all inputs and selects */
+/* Unified style for number inputs and selects */
 input[type="number"],
-input[type="file"],
 select {
   flex-grow: 1;
   padding: 8px 10px;
@@ -128,6 +150,16 @@ select {
   font-size: 14px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+/* --- THIS IS THE FIX --- */
+/* Specific styling for the file input to prevent overflow */
+input[type="file"] {
+  font-size: 14px; /* A smaller font helps the file name fit */
+  color: var(--text-secondary);
+  /* By not setting 'flex-grow: 1', it will no longer expand and overlap */
+  margin-bottom: 10px;
+}
+
 
 input:focus, select:focus {
   outline: none;
@@ -145,7 +177,7 @@ input[type="color"] {
   background-color: transparent;
 }
 
-/* 5. Button Styling */
+/* 6. Button Styling */
 button {
   padding: 8px 16px;
   border: none;
@@ -153,7 +185,7 @@ button {
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s, border-color 0.2s; /* Added transition for shadow */
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s, border-color 0.2s;
   white-space: nowrap;
 }
 
