@@ -663,10 +663,36 @@ function startExport() {
     alert("There is nothing to export.");
     return;
   }
-  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-    alert("Video export not supported in this browser.");
+
+  // --- MODIFIED: More flexible browser support for video export ---
+  
+  // Array of possible video formats to check, in order of preference.
+  const mimeTypes = [
+    'video/webm;codecs=vp9', // Preferred for Chrome/Edge
+    'video/webm;codecs=vp8', // Good fallback for Firefox
+    'video/webm',            // Generic fallback
+  ];
+
+  let supportedMimeType = null;
+  // Check if MediaRecorder API is available at all.
+  if (window.MediaRecorder) {
+      // Loop through the list of MIME types.
+      for (const mimeType of mimeTypes) {
+          // Check if the browser supports the current type.
+          if (MediaRecorder.isTypeSupported(mimeType)) {
+              supportedMimeType = mimeType; // If it's supported, save it...
+              break;                        // ...and stop checking.
+          }
+      }
+  }
+
+  // If after checking all types, none were supported, show an alert.
+  if (!supportedMimeType) {
+    alert("Video export not supported in this browser. Please try a recent version of Chrome, Edge, or Firefox.");
     return;
   }
+  // --- END OF MODIFICATION ---
+
   if (isExporting) return;
 
   exportFPS = parseInt(document.getElementById('exportFPS').value);
@@ -680,7 +706,10 @@ function startExport() {
   exportCanvas.pixelDensity(1);
   exportCanvas.hide();
   exportStream = exportCanvas.elt.captureStream(exportFPS);
-  mediaRecorder = new MediaRecorder(exportStream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 2500000 });
+  
+  // Use the successfully found MIME type to create the MediaRecorder.
+  mediaRecorder = new MediaRecorder(exportStream, { mimeType: supportedMimeType, videoBitsPerSecond: 2500000 });
+  
   mediaRecorder.ondataavailable = e => e.data.size > 0 && recordedChunks.push(e.data);
   mediaRecorder.onstop = handleExportFinish;
   mediaRecorder.start();
