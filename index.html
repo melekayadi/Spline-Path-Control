@@ -46,7 +46,7 @@
         </div>
         <div class="control-group">
           <label for="selectedStrokeWeight">Width:</label>
-          <input type="number" id="selectedStrokeWeight" min="0" max="10" value="1">
+          <input type="number" id="selectedStrokeWeight" min="0" max="10" step="0.25" value="1">
         </div>
         <div class="control-group">
           <label for="selectedTension">Tension:</label>
@@ -92,32 +92,45 @@
         </div>
         
         <!-- Spline Management Buttons -->
-        <div class="spline-management">
+      <div class="spline-management">
         <button id="newSpline">New Spline</button>
         <button id="deleteSpline">Delete Spline</button>
         <button id="addPoint">Add Point</button>
-        <button id="removePoint">Remove Point</button>
+        <button id="removePoint">Remove Point/Shape</button> <!-- Renamed for clarity -->
+        <button id="addShape">Add Shape</button>
         <button id="clearAll">Clear All</button>
       </div>
         
         <!-- Export Controls -->
         <div class="export-container">
-        <div class="export-settings">
-          <div class="control-group">
-            <label for="exportFPS">Export FPS:</label>
-            <input type="number" id="exportFPS" min="1" max="120" value="16">
+          <!-- *** NEW: Left panel for controls *** -->
+          <div class="export-left-panel">
+            <div class="export-settings">
+              <div class="control-group">
+                <label for="exportFPS">Export FPS:</label>
+                <input type="number" id="exportFPS" min="1" max="120" value="16">
+              </div>
+              <div class="control-group">
+                <label for="exportSeconds">Length (s):</label>
+                <input type="number" id="exportSeconds" min="0.1" max="300" step="0.1" value="5">
+              </div>
+            </div>
+            <div class="export-controls">
+              <button id="exportVideo">Export Video</button>
+              <button id="cancelExport">Cancel Export</button>
+            </div>
           </div>
-          <div class="control-group">
-            <label for="exportSeconds">Length (s):</label>
-            <input type="number" id="exportSeconds" min="0.1" max="300" step="0.1" value="5">
+          
+          <!-- *** MOVED: Instructions Box is now a sibling *** -->
+          <div class="info-box">
+            <b>Tips:</b><br>
+            • You can drag and drop images on the canvas.<br>
+            • Lower 'Seconds' to make shapes move faster.<br>
+             • Raise 'Seconds' to make shapes move slower.<br>
+            
+            • Increase 'Tension' for curvier splines.
           </div>
         </div>
-
-        <div class="export-controls">
-          <button id="exportVideo">Export Video</button>
-          <button id="cancelExport">Cancel Export</button>
-        </div>
-      </div>
       </div>
     </div>
   </div>
