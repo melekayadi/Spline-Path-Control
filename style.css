@@ -133,7 +133,7 @@ h3 {
 }
 
 .control-group label {
-  min-width: 70px;
+  min-width: 75px; /* Increased from 70px to align all inputs */
   font-weight: 500;
   color: var(--text-secondary);
   font-size: 14px;

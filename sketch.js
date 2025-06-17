@@ -24,6 +24,7 @@ let originalImageDimensions = { width: 800, height: 600 }; // Default canvas siz
 let debugMode = false;
 let canvasOffset = { x: 0, y: 0 };
 let canvas;
+let appStartTime;
 
 // =========
 // SETUP
@@ -32,6 +33,7 @@ function setup() {
   canvas = createCanvas(800, 600);
   canvas.parent('canvas-container');
   pixelDensity(1);
+  appStartTime = millis();
 
   // *** NEW: Add drag and drop handling for background images ***
   canvas.drop(gotFile);
@@ -55,7 +57,7 @@ function setupEventListeners() {
   document.getElementById('resetCanvasSize').addEventListener('click', resetCanvasSize);
 
   // Selected spline/shape controls
-  const controls = ['FPS', 'Duration', 'Size', 'Type', 'FillColor', 'StrokeColor', 'StrokeWeight', 'Tension'];
+  const controls = ['StartFrame', 'Duration', 'Size', 'Type', 'FillColor', 'StrokeColor', 'StrokeWeight', 'Tension', 'Easing'];
   controls.forEach(control => {
     document.getElementById(`selected${control}`).addEventListener('input', updateSelectedItem);
   });
@@ -126,7 +128,7 @@ function draw() {
 
 function addNewSpline() {
   const defaultSettings = {
-    fps: 16,
+    startFrame: 0,
     duration: 5,
     shapeSize: 10,
     shapeType: 'square',
@@ -134,13 +136,14 @@ function addNewSpline() {
     strokeColor: '#000000',
     strokeWeight: 0.5,
     tension: 0,
+    easing: 'linear', // Default easing function
   };
   let settings = { ...defaultSettings };
 
-  let sourceItem = selectedSpline || selectedStaticShape;
+  let sourceItem = selectedSpline || (splines.length > 0 ? splines[splines.length - 1] : null) || selectedStaticShape;
   if (sourceItem) {
     settings = {
-      fps: sourceItem.fps || defaultSettings.fps,
+      startFrame: sourceItem.startFrame || defaultSettings.startFrame,
       duration: sourceItem.duration || defaultSettings.duration,
       shapeSize: sourceItem.shapeSize,
       shapeType: sourceItem.shapeType,
@@ -148,11 +151,12 @@ function addNewSpline() {
       strokeColor: sourceItem.strokeColor,
       strokeWeight: sourceItem.strokeWeight,
       tension: sourceItem.tension || defaultSettings.tension,
+      easing: sourceItem.easing || defaultSettings.easing,
     };
   }
 
   const yOffset = (splines.length % 5) * 40;
-  const newSpline = { ...settings, points: [createVector(width * 0.25, height / 2 - 50 + yOffset), createVector(width * 0.75, height / 2 - 50 + yOffset)], startTime: millis() };
+  const newSpline = { ...settings, points: [createVector(width * 0.25, height / 2 - 50 + yOffset), createVector(width * 0.75, height / 2 - 50 + yOffset)] };
   splines.push(newSpline);
   selectSpline(newSpline);
 }
@@ -213,7 +217,7 @@ function selectSpline(spline) {
   document.getElementById('spline-controls').style.display = 'block';
   document.querySelector('h3').textContent = 'Selected Spline Control';
 
-  ['FPS', 'Duration', 'Tension'].forEach(id => {
+  ['StartFrame', 'Duration', 'Tension', 'Easing'].forEach(id => {
     document.getElementById(`selected${id}`).parentElement.style.display = 'flex';
   });
   
@@ -227,7 +231,7 @@ function selectStaticShape(shape) {
   document.getElementById('spline-controls').style.display = 'block';
   document.querySelector('h3').textContent = 'Selected Shape Control';
 
-  ['FPS', 'Duration', 'Tension'].forEach(id => {
+  ['StartFrame', 'Duration', 'Tension', 'Easing'].forEach(id => {
     document.getElementById(`selected${id}`).parentElement.style.display = 'none';
   });
 
@@ -245,9 +249,10 @@ function updateSelectedItemUI() {
     document.getElementById('selectedStrokeWeight').value = item.strokeWeight;
 
     if (selectedSpline) {
-        document.getElementById('selectedFPS').value = item.fps;
+        document.getElementById('selectedStartFrame').value = item.startFrame;
         document.getElementById('selectedDuration').value = item.duration;
         document.getElementById('selectedTension').value = item.tension;
+        document.getElementById('selectedEasing').value = item.easing;
     }
 }
 
@@ -262,9 +267,10 @@ function updateSelectedItem() {
   item.strokeWeight = parseFloat(document.getElementById('selectedStrokeWeight').value);
   
   if (selectedSpline) {
-    item.fps = parseInt(document.getElementById('selectedFPS').value);
+    item.startFrame = parseInt(document.getElementById('selectedStartFrame').value) || 0;
     item.duration = parseFloat(document.getElementById('selectedDuration').value);
     item.tension = parseFloat(document.getElementById('selectedTension').value);
+    item.easing = document.getElementById('selectedEasing').value;
   }
 }
 
@@ -274,6 +280,7 @@ function clearAll() {
   selectedSpline = null;
   selectedStaticShape = null;
   selectedPoint = null;
+  appStartTime = millis(); // Reset global timer
   document.getElementById('spline-controls').style.display = 'none';
   addNewSpline();
 }
@@ -395,7 +402,7 @@ function drawMovingShapes() {
   for (let spline of splines) {
     if (spline.points.length < 2) continue;
     const pos = getCurrentSplinePosition(spline);
-    if (!pos) continue;
+    if (!pos) continue; // If null is returned, the animation hasn't started, so don't draw.
     fill(spline.fillColor);
     stroke(spline.strokeColor);
     strokeWeight(spline.strokeWeight);
@@ -519,10 +526,40 @@ function addPointToSpline() {
 // ==============================
 // SPLINE & CANVAS MATH/LOGIC
 // ==============================
+
+// Apply the selected easing function to a time value (0-1)
+function applyEasing(t, easingType) {
+  switch (easingType) {
+    case 'easeIn':
+      return t * t; // Quadratic ease-in
+    case 'easeOut':
+      return t * (2 - t); // Quadratic ease-out
+    case 'easeInOut':
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // Quadratic ease-in-out
+    case 'linear':
+    default:
+      return t; // No easing
+  }
+}
+
+
 function getCurrentSplinePosition(spline) {
+  const fps = 60; // Assume live preview runs at a smooth 60fps for calculations
+  const startDelayMs = (spline.startFrame / fps) * 1000;
   const totalTime = spline.duration * 1000;
-  const currentTime = (millis() - spline.startTime) % totalTime;
-  const progress = currentTime / totalTime;
+  const globalElapsedTime = millis() - appStartTime;
+
+  if (globalElapsedTime < startDelayMs) {
+    return null; // Animation hasn't started for this spline yet
+  }
+
+  const splineLocalTime = globalElapsedTime - startDelayMs;
+  const currentTimeInLoop = splineLocalTime % totalTime;
+  let progress = currentTimeInLoop / totalTime;
+  
+  // Apply the selected easing function
+  progress = applyEasing(progress, spline.easing);
+
   const targetDistance = progress * calculateSplineLength(spline);
   return getPointAtDistance(spline, targetDistance)?.point;
 }
@@ -734,13 +771,20 @@ function drawExportFrame(overallProgress) {
   }
 
   for (const spline of splines) {
-    const splineDurationMs = spline.duration * 1000;
-    let splineProgress;
-    if (exportCurrentTimeMs >= splineDurationMs) {
-      splineProgress = 1.0;
-    } else {
-      splineProgress = exportCurrentTimeMs / splineDurationMs;
+    const startDelayMs = (spline.startFrame / exportFPS) * 1000;
+
+    if (exportCurrentTimeMs < startDelayMs) {
+      continue; // Skip this spline if its start time hasn't been reached
     }
+
+    const splineLocalTime = exportCurrentTimeMs - startDelayMs;
+    const splineDurationMs = spline.duration * 1000;
+    const splineTimeInLoop = splineLocalTime % splineDurationMs;
+    let splineProgress = splineTimeInLoop / splineDurationMs;
+
+    // Apply easing for export
+    splineProgress = applyEasing(splineProgress, spline.easing);
+
     const totalLength = calculateSplineLength(spline);
     const targetDistance = splineProgress * totalLength;
     const pos = getPointAtDistance(spline, targetDistance);
