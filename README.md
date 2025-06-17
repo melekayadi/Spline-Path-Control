@@ -8,11 +8,9 @@ Spline Path Control is a simple tool designed to make it easy to create motion c
 
 This project was created to simplify the process of generating control videos for tools like VACE. Use it to control the motion of anything (camera movement, objects, humans etc) all without extra prompting.
 
-⬇️ **Video** ⬇️
-
+▶️ YouTube Video
+---
 [![Spline Path Control Video](https://img.youtube.com/vi/wqq8N6ahsAk/0.jpg)](https://www.youtube.com/watch?v=wqq8N6ahsAk)
-
-⬆️ **Video** ⬆️
 
 ## ✨ Features
 
@@ -34,7 +32,7 @@ This project was created to simplify the process of generating control videos fo
     * Added **Easing Functions** (Linear, Ease-in, Ease-out, Ease-in-out) for smoother animations.
     * Fixed a CSS alignment issue in the control panel for a cleaner UI.
 
-## Examples
+## 🎥 Examples
 
 Here are just a few examples of what you can do with a simple control path:
 
@@ -54,11 +52,11 @@ https://github.com/user-attachments/assets/92034c81-12e1-434c-a811-1f46ab69d3a8
 
 *Example: Controlling the camera to push in*
 
-## How to Use With ComfyUI
+## ❓ How to Use With ComfyUI
 
 Simply plug the webm into the control_video or control_images VACE input using any load video node. There are example workflows below.
 
-## Example Workflows
+## 💡 Example Workflows
 
 (Coming Soon)
 
