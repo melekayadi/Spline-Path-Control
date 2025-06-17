@@ -8,6 +8,8 @@ Spline Path Control is a simple tool designed to make it easy to create motion c
 
 This project was created to simplify the process of generating control videos for tools like VACE. Use it to control the motion of anything (camera movement, objects, humans etc) all without extra prompting.
 
+Use it here for free: https://whatdreamscost.github.io/Spline-Path-Control/
+
 ▶️ YouTube Video
 ---
 [![Spline Path Control Video](https://img.youtube.com/vi/wqq8N6ahsAk/0.jpg)](https://www.youtube.com/watch?v=wqq8N6ahsAk)
