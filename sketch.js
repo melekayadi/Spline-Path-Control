@@ -128,11 +128,11 @@ function addNewSpline() {
   const defaultSettings = {
     fps: 16,
     duration: 5,
-    shapeSize: 10,      // <--- Changed from 20 to 10
+    shapeSize: 10,
     shapeType: 'square',
     fillColor: '#ffffff',
     strokeColor: '#000000',
-    strokeWeight: 0.5,    // <--- Changed from 1 to 0.5
+    strokeWeight: 0.5,
     tension: 0,
   };
   let settings = { ...defaultSettings };
@@ -157,18 +157,33 @@ function addNewSpline() {
   selectSpline(newSpline);
 }
 
+// --- MODIFIED: This function now inherits properties from the LAST CREATED SHAPE ---
 function addStaticShape() {
-  const defaultSettings = { shapeSize: 10, shapeType: 'circle', fillColor: '#007bff', strokeColor: '#ffffff', strokeWeight: 0.5 };
+  // Define the default properties for a static shape
+  const defaultSettings = { 
+    shapeSize: 10, 
+    shapeType: 'square',    // Default to square
+    fillColor: '#ffffff',   // Default to white
+    strokeColor: '#000000', // Default to black
+    strokeWeight: 1         // Default border width to 1
+  };
   let settings = { ...defaultSettings };
 
-  let sourceItem = selectedSpline || selectedStaticShape;
-  if (sourceItem) {
+  // Check if there are any existing static shapes
+  if (staticShapes.length > 0) {
+    // If so, use the last created shape as the source for properties
+    const sourceItem = staticShapes[staticShapes.length - 1]; 
     settings = {
-      shapeSize: sourceItem.shapeSize, shapeType: sourceItem.shapeType, fillColor: sourceItem.fillColor,
-      strokeColor: sourceItem.strokeColor, strokeWeight: sourceItem.strokeWeight,
+      shapeSize: sourceItem.shapeSize, 
+      shapeType: sourceItem.shapeType, 
+      fillColor: sourceItem.fillColor,
+      strokeColor: sourceItem.strokeColor, 
+      strokeWeight: sourceItem.strokeWeight,
     };
   }
+  // If no static shapes exist, the defaultSettings will be used.
 
+  // Create the new shape with the determined settings
   const newShape = { ...settings, pos: createVector(width / 2, height / 2), isStatic: true };
   staticShapes.push(newShape);
   selectStaticShape(newShape);
@@ -244,9 +259,6 @@ function updateSelectedItem() {
   item.shapeType = document.getElementById('selectedType').value;
   item.fillColor = document.getElementById('selectedFillColor').value;
   item.strokeColor = document.getElementById('selectedStrokeColor').value;
-  
-  // --- THIS IS THE FIX ---
-  // Changed parseInt to parseFloat to allow for decimal values
   item.strokeWeight = parseFloat(document.getElementById('selectedStrokeWeight').value);
   
   if (selectedSpline) {
@@ -325,21 +337,19 @@ function drawDirectionalArrow(spline, pointIndex) {
   
   const p = spline.points[pointIndex];
   let direction;
-  const arrowSize = 12; // <--- Changed from 20 to 12 to make arrows smaller
+  const arrowSize = 12;
 
-  // A more accurate direction based on the curve's tangent
   if (spline.points.length >= 2) {
-      let t = 0.5; // for mid-points
+      let t = 0.5;
       let segmentIndex = pointIndex;
 
       if (pointIndex === 0) {
-          t = 0.01; // a little bit into the first segment
+          t = 0.01;
           segmentIndex = 0;
       } else if (pointIndex === spline.points.length - 1) {
-          t = 0.99; // almost at the end of the last segment
+          t = 0.99;
           segmentIndex = pointIndex - 1;
       } else {
-          // For middle points, we can approximate the tangent
           const prev = spline.points[pointIndex-1];
           const next = spline.points[pointIndex+1];
           direction = createVector(next.x - prev.x, next.y - prev.y);
@@ -351,7 +361,7 @@ function drawDirectionalArrow(spline, pointIndex) {
            if (p1 && p2) {
               direction = p5.Vector.sub(p2, p1);
            } else {
-               direction = createVector(1, 0); // fallback
+               direction = createVector(1, 0);
            }
       }
   }
@@ -412,18 +422,16 @@ function drawDragIndicator() { /* ... */ }
 function mousePressed() {
   if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
 
-  // 1. Check for static shapes first
   for (let i = staticShapes.length - 1; i >= 0; i--) {
     const shape = staticShapes[i];
     const d = dist(mouseX, mouseY, shape.pos.x, shape.pos.y);
     if (d < shape.shapeSize / 2) {
       draggedStaticShape = shape;
       selectStaticShape(shape);
-      return; // Found a shape, stop here
+      return;
     }
   }
   
-  // 2. Check for spline points
   for (let s = 0; s < splines.length; s++) {
     const spline = splines[s];
     for (let i = 0; i < spline.points.length; i++) {
@@ -435,16 +443,14 @@ function mousePressed() {
         selectedPointIndex = i;
         selectedSplineIndex = s;
         selectSpline(spline);
-        return; // Found a point, stop here
+        return;
       }
     }
   }
 
-  // If nothing was clicked, deselect the item but KEEP the sidebar open.
   selectedSpline = null;
   selectedStaticShape = null;
   selectedPoint = null;
-  // This line was removed: document.getElementById('spline-controls').style.display = 'none';
 }
 
 function mouseDragged() {
@@ -467,28 +473,21 @@ function mouseReleased() {
 // ==============================
 function removeSelectedItem() {
   if (selectedStaticShape) {
-    // Find and remove the selected static shape from the array
     const index = staticShapes.indexOf(selectedStaticShape);
     if (index > -1) {
       staticShapes.splice(index, 1);
     }
     selectedStaticShape = null;
 
-    // --- THIS IS THE FIX ---
-    // Instead of hiding the sidebar, find the next best item to select.
     if (splines.length > 0) {
-      // If splines exist, select the last one.
       selectSpline(splines[splines.length - 1]);
     } else if (staticShapes.length > 0) {
-      // Otherwise, if shapes exist, select the last one.
       selectStaticShape(staticShapes[staticShapes.length - 1]);
     } else {
-      // Only hide the sidebar if the canvas is completely empty.
       document.getElementById('spline-controls').style.display = 'none';
     }
 
   } else if (selectedPoint && selectedSpline) {
-    // This part for removing a spline point works correctly and is unchanged.
     if (selectedSpline.points.length > 2) {
       selectedSpline.points.splice(selectedPointIndex, 1);
       selectedPoint = null;
@@ -643,26 +642,18 @@ function handleBgImage(event) {
   reader.readAsDataURL(file);
 }
 
-// *** NEW: Function to handle dropped files ***
 function gotFile(file) {
-  // Make sure it's an image file
   if (file.type === 'image') {
-    // Load the image from the file's data (p5.File object)
     backgroundImg = loadImage(file.data, img => {
-      // This is a callback function that runs once the image is loaded
       originalImageDimensions = { width: img.width, height: img.height };
       resizeCanvasToFit();
     }, err => {
-      // Error callback
       console.error('Error loading dropped image:', err);
     });
   } else {
     console.log('Not an image file!');
-    // You can optionally show an alert to the user
-    // alert('Please drop an image file (e.g., .png, .jpg).');
   }
 }
-  
   
 // ==============
 // EXPORT
@@ -701,7 +692,6 @@ function drawExportFrame(overallProgress) {
   exportCanvas.background(255);
   const exportCurrentTimeMs = overallProgress * exportDuration * 1000;
 
-  // Draw static shapes first, so they are in the background
   for (const shape of staticShapes) {
       const scaleX = exportCanvas.width / width;
       const scaleY = exportCanvas.height / height;
@@ -714,7 +704,6 @@ function drawExportFrame(overallProgress) {
       exportCanvas.pop();
   }
 
-  // Draw animated splines on top
   for (const spline of splines) {
     const splineDurationMs = spline.duration * 1000;
     let splineProgress;
