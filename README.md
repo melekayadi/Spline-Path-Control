@@ -63,7 +63,9 @@ https://github.com/user-attachments/assets/92034c81-12e1-434c-a811-1f46ab69d3a8
 Simply plug the webm into the control_video or control_images VACE input using any load video node. There are example workflows below.
 
 ## 💡 Example Workflows
-**I2V VACE Control Workflow**
+**Download Workflows Here:** https://github.com/WhatDreamsCost/Spline-Path-Control/tree/main/example_workflows
+
+**I2V VACE Control Workflow** 
 ![i2v_vace_control_example](https://github.com/user-attachments/assets/a2d19416-b595-4631-a2e2-2f202391dd95)
 
 ## Credits
