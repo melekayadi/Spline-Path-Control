@@ -68,6 +68,10 @@ Simply plug the webm into the control_video or control_images VACE input using a
 **I2V VACE Control Workflow** 
 ![i2v_vace_control_example](https://github.com/user-attachments/assets/a2d19416-b595-4631-a2e2-2f202391dd95)
 
+## 💡 Tips
+(Coming Soon)
+
+
 ## Credits
 
 * **Author:** [WhatDreamsCost](https://github.com/WhatDreamsCost)
