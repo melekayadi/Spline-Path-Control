@@ -5,6 +5,8 @@ let splines = [];
 let staticShapes = [];
 let draggedPoint = null;
 let draggedStaticShape = null;
+let draggedSpline = null; 
+let dragStartPos = null; 
 let backgroundImg = null;
 let selectedSpline = null;
 let selectedStaticShape = null;
@@ -20,13 +22,15 @@ let exportCanvas;
 let mediaRecorder;
 let recordedChunks = [];
 let exportStream = null;
-let originalImageDimensions = { width: 800, height: 600 }; // Default canvas size
+let originalImageDimensions = { width: 1000, height: 562 }; 
 let debugMode = false;
 let canvasOffset = { x: 0, y: 0 };
 let canvas;
 let appStartTime;
+let loopingPreview = true; 
+let loopPreviewButton; 
 
-// ** NEW: DOM elements for the export UI
+// DOM elements for the export UI
 let exportOverlay, progressBarFill, exportPercentage, exportFrameCount;
 
 
@@ -34,14 +38,13 @@ let exportOverlay, progressBarFill, exportPercentage, exportFrameCount;
 // SETUP
 // =========
 function setup() {
-  canvas = createCanvas(800, 600);
+  canvas = createCanvas(1000, 562); 
   canvas.parent('canvas-container');
   pixelDensity(1);
   appStartTime = millis();
 
   canvas.drop(gotFile);
 
-  // ** NEW: Get references to the export UI elements
   exportOverlay = document.getElementById('export-overlay');
   progressBarFill = document.getElementById('progress-bar-fill');
   exportPercentage = document.getElementById('export-percentage');
@@ -64,11 +67,19 @@ function setupEventListeners() {
   document.getElementById('addShape').addEventListener('click', addStaticShape);
   document.getElementById('updateCanvasSize').addEventListener('click', updateCanvasSize);
   document.getElementById('resetCanvasSize').addEventListener('click', resetCanvasSize);
+  document.getElementById('cloneItem').addEventListener('click', cloneSelectedItem);
+  
+  document.getElementById('playOnce').addEventListener('click', playOnce);
+  loopPreviewButton = document.getElementById('loopPreview');
+  loopPreviewButton.addEventListener('click', toggleLooping);
 
-  const controls = ['StartFrame', 'Duration', 'Size', 'Type', 'FillColor', 'StrokeColor', 'StrokeWeight', 'Tension', 'Easing'];
+  const controls = ['StartFrame', 'Duration', 'Type', 'FillColor', 'StrokeColor', 'StrokeWeight', 'Tension', 'Easing'];
   controls.forEach(control => {
     document.getElementById(`selected${control}`).addEventListener('input', updateSelectedItem);
   });
+  document.getElementById('selectedSizeX').addEventListener('input', updateSelectedItem);
+  document.getElementById('selectedSizeY').addEventListener('input', updateSelectedItem);
+
 
   const canvasContainer = document.getElementById('canvas-container');
   
@@ -95,10 +106,6 @@ function setupEventListeners() {
 // DRAW
 // =========
 function draw() {
-  // The export UI is now handled by HTML/CSS, so the 'if (isExporting)'
-  // block has been removed from here. The canvas will continue to draw
-  // underneath the overlay.
-
   background(240);
   if (backgroundImg) {
     image(backgroundImg, 0, 0, width, height);
@@ -125,7 +132,8 @@ function addNewSpline() {
   const defaultSettings = {
     startFrame: 0,
     duration: 5,
-    shapeSize: 10,
+    shapeSizeX: 10, 
+    shapeSizeY: 10, 
     shapeType: 'square',
     fillColor: '#ffffff',
     strokeColor: '#000000',
@@ -135,22 +143,7 @@ function addNewSpline() {
   };
   let settings = { ...defaultSettings };
 
-  let sourceItem = selectedSpline || (splines.length > 0 ? splines[splines.length - 1] : null) || selectedStaticShape;
-  if (sourceItem) {
-    settings = {
-      startFrame: sourceItem.startFrame || defaultSettings.startFrame,
-      duration: sourceItem.duration || defaultSettings.duration,
-      shapeSize: sourceItem.shapeSize,
-      shapeType: sourceItem.shapeType,
-      fillColor: sourceItem.fillColor,
-      strokeColor: sourceItem.strokeColor,
-      strokeWeight: sourceItem.strokeWeight,
-      tension: sourceItem.tension || defaultSettings.tension,
-      easing: sourceItem.easing || defaultSettings.easing,
-    };
-  }
-
-  const yOffset = (splines.length % 5) * 40;
+  const yOffset = (splines.length % 10) * 20;
   const newSpline = { ...settings, points: [createVector(width * 0.25, height / 2 - 50 + yOffset), createVector(width * 0.75, height / 2 - 50 + yOffset)] };
   splines.push(newSpline);
   selectSpline(newSpline);
@@ -158,7 +151,8 @@ function addNewSpline() {
 
 function addStaticShape() {
   const defaultSettings = { 
-    shapeSize: 10, 
+    shapeSizeX: 10, 
+    shapeSizeY: 10, 
     shapeType: 'square',
     fillColor: '#ffffff',
     strokeColor: '#000000',
@@ -166,18 +160,10 @@ function addStaticShape() {
   };
   let settings = { ...defaultSettings };
 
-  if (staticShapes.length > 0) {
-    const sourceItem = staticShapes[staticShapes.length - 1]; 
-    settings = {
-      shapeSize: sourceItem.shapeSize, 
-      shapeType: sourceItem.shapeType, 
-      fillColor: sourceItem.fillColor,
-      strokeColor: sourceItem.strokeColor, 
-      strokeWeight: sourceItem.strokeWeight,
-    };
-  }
+  const xOffset = (staticShapes.length % 5) * 20;
+  const yOffset = (staticShapes.length % 5) * 20;
 
-  const newShape = { ...settings, pos: createVector(width / 2, height / 2), isStatic: true };
+  const newShape = { ...settings, pos: createVector(width / 2 + xOffset, height / 2 + yOffset), isStatic: true };
   staticShapes.push(newShape);
   selectStaticShape(newShape);
 }
@@ -231,7 +217,8 @@ function updateSelectedItemUI() {
     const item = selectedSpline || selectedStaticShape;
     if (!item) return;
 
-    document.getElementById('selectedSize').value = item.shapeSize;
+    document.getElementById('selectedSizeX').value = item.shapeSizeX; 
+    document.getElementById('selectedSizeY').value = item.shapeSizeY; 
     document.getElementById('selectedType').value = item.shapeType;
     document.getElementById('selectedFillColor').value = item.fillColor;
     document.getElementById('selectedStrokeColor').value = item.strokeColor;
@@ -249,7 +236,8 @@ function updateSelectedItem() {
   const item = selectedSpline || selectedStaticShape;
   if (!item) return;
 
-  item.shapeSize = parseInt(document.getElementById('selectedSize').value);
+  item.shapeSizeX = parseInt(document.getElementById('selectedSizeX').value); 
+  item.shapeSizeY = parseInt(document.getElementById('selectedSizeY').value); 
   item.shapeType = document.getElementById('selectedType').value;
   item.fillColor = document.getElementById('selectedFillColor').value;
   item.strokeColor = document.getElementById('selectedStrokeColor').value;
@@ -293,7 +281,7 @@ function drawStaticShapes() {
     strokeWeight(shape.strokeWeight);
     push();
     translate(shape.pos.x, shape.pos.y);
-    drawShape(shape.shapeType, shape.shapeSize);
+    drawShape(shape.shapeType, shape.shapeSizeX, shape.shapeSizeY); 
     pop();
     
     if (shape === selectedStaticShape) {
@@ -301,7 +289,7 @@ function drawStaticShapes() {
       stroke(0, 150, 255, 200);
       strokeWeight(3);
       rectMode(CENTER);
-      rect(shape.pos.x, shape.pos.y, shape.shapeSize + 15, shape.shapeSize + 15);
+      rect(shape.pos.x, shape.pos.y, shape.shapeSizeX + 15, shape.shapeSizeY + 15); 
     }
   }
 }
@@ -397,16 +385,16 @@ function drawMovingShapes() {
     strokeWeight(spline.strokeWeight);
     push();
     translate(pos.x, pos.y);
-    drawShape(spline.shapeType, spline.shapeSize);
+    drawShape(spline.shapeType, spline.shapeSizeX, spline.shapeSizeY); 
     pop();
   }
 }
 
-function drawShape(type, size) {
+function drawShape(type, sizeX, sizeY) { 
   switch (type) {
-    case 'circle': ellipse(0, 0, size); break;
-    case 'square': rectMode(CENTER); rect(0, 0, size, size); break;
-    case 'triangle': triangle(-size / 2, size / 2, size / 2, size / 2, 0, -size / 2); break;
+    case 'circle': ellipse(0, 0, sizeX, sizeY); break;
+    case 'square': rectMode(CENTER); rect(0, 0, sizeX, sizeY); break;
+    case 'triangle': triangle(-sizeX / 2, sizeY / 2, sizeX / 2, sizeY / 2, 0, -sizeY / 2); break;
   }
 }
 
@@ -417,12 +405,14 @@ function drawDragIndicator() { /* ... */ }
 // ==============
 function mousePressed() {
   if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
-  if (isExporting) return; // Prevent interaction when overlay is active
+  if (isExporting) return; 
 
   for (let i = staticShapes.length - 1; i >= 0; i--) {
     const shape = staticShapes[i];
-    const d = dist(mouseX, mouseY, shape.pos.x, shape.pos.y);
-    if (d < shape.shapeSize / 2) {
+    const halfSizeX = shape.shapeSizeX / 2; 
+    const halfSizeY = shape.shapeSizeY / 2; 
+    if (mouseX > shape.pos.x - halfSizeX && mouseX < shape.pos.x + halfSizeX &&
+        mouseY > shape.pos.y - halfSizeY && mouseY < shape.pos.y + halfSizeY) { 
       draggedStaticShape = shape;
       selectStaticShape(shape);
       return;
@@ -434,15 +424,25 @@ function mousePressed() {
     for (let i = 0; i < spline.points.length; i++) {
       const p = spline.points[i];
       const d = dist(mouseX, mouseY, p.x, p.y);
-      if (d < 15) {
+      if (d < 15) { 
         draggedPoint = p;
         selectedPoint = p;
         selectedPointIndex = i;
         selectedSplineIndex = s;
         selectSpline(spline);
-        return;
+        return; 
       }
     }
+  }
+
+  for (let i = splines.length - 1; i >= 0; i--) {
+      const spline = splines[i];
+      if (isMouseOnSpline(spline, 10)) { 
+          draggedSpline = spline;
+          selectSpline(spline);
+          dragStartPos = createVector(mouseX, mouseY);
+          return;
+      }
   }
 
   selectedSpline = null;
@@ -452,23 +452,104 @@ function mousePressed() {
 
 function mouseDragged() {
   if (isExporting) return;
+  
   if (draggedStaticShape) {
     draggedStaticShape.pos.x = constrain(mouseX, 0, width);
     draggedStaticShape.pos.y = constrain(mouseY, 0, height);
   } else if (draggedPoint) {
     draggedPoint.x = constrain(mouseX, 0, width);
     draggedPoint.y = constrain(mouseY, 0, height);
+  } else if (draggedSpline) { 
+    const currentMousePos = createVector(mouseX, mouseY);
+    const delta = p5.Vector.sub(currentMousePos, dragStartPos);
+
+    for(let point of draggedSpline.points) {
+        point.add(delta);
+    }
+    
+    dragStartPos = currentMousePos;
   }
 }
 
 function mouseReleased() {
   draggedPoint = null;
   draggedStaticShape = null;
+  draggedSpline = null; 
+  dragStartPos = null; 
 }
+
+function isMouseOnSpline(spline, tolerance) {
+    if (spline.points.length < 2) return false;
+
+    for (let i = 0; i < spline.points.length - 1; i++) {
+        for (let t = 0; t <= 1; t += 0.05) { 
+            const p = getPointOnSegment(spline, i, t);
+            if (p) {
+                const d = dist(mouseX, mouseY, p.x, p.y);
+                if (d < tolerance) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 
 // ==============================
 // POINT & SHAPE MANAGEMENT
 // ==============================
+function cloneSelectedItem() {
+  const offset = createVector(20, 20); 
+
+  if (selectedSpline) {
+    const original = selectedSpline;
+    const newSpline = {
+      startFrame: original.startFrame,
+      duration: original.duration,
+      shapeSizeX: original.shapeSizeX, 
+      shapeSizeY: original.shapeSizeY, 
+      shapeType: original.shapeType,
+      fillColor: original.fillColor,
+      strokeColor: original.strokeColor,
+      strokeWeight: original.strokeWeight,
+      tension: original.tension,
+      easing: original.easing,
+      points: original.points.map(p => {
+        let newX = p.x + offset.x;
+        let newY = p.y + offset.y;
+        if (newX > width) newX -= (width / 4);
+        if (newY > height) newY -= (height / 4);
+        return createVector(newX, newY);
+      })
+    };
+    splines.push(newSpline);
+    selectSpline(newSpline);
+
+  } else if (selectedStaticShape) {
+    const original = selectedStaticShape;
+    let newX = original.pos.x + offset.x;
+    let newY = original.pos.y + offset.y;
+    
+    if (newX > width) newX = width - original.shapeSizeX; 
+    if (newY > height) newY = height - original.shapeSizeY; 
+
+    const newShape = {
+      shapeSizeX: original.shapeSizeX, 
+      shapeSizeY: original.shapeSizeY, 
+      shapeType: original.shapeType,
+      fillColor: original.fillColor,
+      strokeColor: original.strokeColor,
+      strokeWeight: original.strokeWeight,
+      isStatic: true,
+      pos: createVector(newX, newY)
+    };
+    staticShapes.push(newShape);
+    selectStaticShape(newShape);
+  }
+}
+
+
 function removeSelectedItem() {
   if (selectedStaticShape) {
     const index = staticShapes.indexOf(selectedStaticShape);
@@ -496,21 +577,67 @@ function removeSelectedItem() {
   }
 }
 
+// FIXED: This function has been corrected and improved.
 function addPointToSpline() {
-  if (!selectedSpline || selectedSpline.points.length < 2) return;
-  let maxSegment = { length: 0, index: 0 };
+  if (!selectedSpline || selectedSpline.points.length < 2) {
+    return; // Can't add a point if no spline is selected or it has fewer than 2 points.
+  }
+
+  // Find the segment with the greatest curve length.
+  let longestSegment = {
+    index: -1,
+    length: 0
+  };
+
   for (let i = 0; i < selectedSpline.points.length - 1; i++) {
-    const p1 = selectedSpline.points[i];
-    const p2 = selectedSpline.points[i + 1];
-    const segmentLength = dist(p1.x, p1.y, p2.x, p2.y);
-    if (segmentLength > maxSegment.length) {
-      maxSegment = { length: segmentLength, index: i };
+    let segmentLength = 0;
+    const steps = 20; // Number of small steps to approximate curve length
+    let lastPoint = getPointOnSegment(selectedSpline, i, 0);
+
+    for (let j = 1; j <= steps; j++) {
+      const t = j / steps;
+      const currentPoint = getPointOnSegment(selectedSpline, i, t);
+      segmentLength += dist(lastPoint.x, lastPoint.y, currentPoint.x, currentPoint.y);
+      lastPoint = currentPoint;
+    }
+
+    if (segmentLength > longestSegment.length) {
+      longestSegment.length = segmentLength;
+      longestSegment.index = i;
     }
   }
-  const p1 = selectedSpline.points[maxSegment.index];
-  const p2 = selectedSpline.points[maxSegment.index + 1];
-  const newPoint = createVector((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
-  selectedSpline.points.splice(maxSegment.index + 1, 0, newPoint);
+
+  if (longestSegment.index !== -1) {
+    // Calculate the new point at the halfway mark (t=0.5) of the longest segment.
+    const newPoint = getPointOnSegment(selectedSpline, longestSegment.index, 0.5);
+    
+    // Insert the new point into the array using splice().
+    selectedSpline.points.splice(longestSegment.index + 1, 0, newPoint);
+  }
+}
+
+
+// ==============================
+// PREVIEW CONTROLS
+// ==============================
+
+function toggleLooping() {
+  loopingPreview = !loopingPreview;
+  if (loopingPreview) {
+    loopPreviewButton.textContent = 'Loop Preview: ON';
+    loopPreviewButton.style.backgroundColor = 'var(--accent-success)';
+    appStartTime = millis(); 
+  } else {
+    loopPreviewButton.textContent = 'Loop Preview: OFF';
+    loopPreviewButton.style.backgroundColor = 'var(--accent-danger)';
+  }
+}
+
+function playOnce() {
+  if (loopingPreview) {
+    toggleLooping(); 
+  }
+  appStartTime = millis(); 
 }
 
 
@@ -537,9 +664,15 @@ function getCurrentSplinePosition(spline) {
     return null;
   }
 
-  const splineLocalTime = globalElapsedTime - startDelayMs;
-  const currentTimeInLoop = splineLocalTime % totalTime;
-  let progress = currentTimeInLoop / totalTime;
+  let splineLocalTime = globalElapsedTime - startDelayMs;
+  let progress;
+
+  if (loopingPreview) {
+    const currentTimeInLoop = splineLocalTime % totalTime;
+    progress = currentTimeInLoop / totalTime;
+  } else {
+    progress = constrain(splineLocalTime / totalTime, 0, 1);
+  }
   
   progress = applyEasing(progress, spline.easing);
 
@@ -646,6 +779,24 @@ function updateCanvasSize() {
   }
 }
 
+function resetCanvasSize() {
+  let targetWidth, targetHeight;
+
+  if (backgroundImg) {
+    targetWidth = originalImageDimensions.width;
+    targetHeight = originalImageDimensions.height;
+  } else {
+    targetWidth = 1000;
+    targetHeight = 562;
+  }
+
+  document.getElementById('canvasWidth').value = targetWidth;
+  document.getElementById('canvasHeight').value = targetHeight;
+  
+  updateCanvasSize();
+}
+
+
 function handleBgImage(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -708,7 +859,6 @@ function startExport() {
   if (isExporting) return;
   isExporting = true;
   
-  // ** NEW: Show and reset the HTML export UI
   exportOverlay.style.display = 'flex';
   progressBarFill.style.width = '0%';
   exportPercentage.textContent = '0%';
@@ -748,7 +898,7 @@ function drawExportFrame(overallProgress) {
       exportCanvas.stroke(shape.strokeColor);
       exportCanvas.strokeWeight(shape.strokeWeight * ((scaleX + scaleY) / 2));
       exportCanvas.translate(shape.pos.x * scaleX, shape.pos.y * scaleY);
-      drawShapeOnCanvas(exportCanvas, shape.shapeType, shape.shapeSize * Math.max(scaleX, scaleY));
+      drawShapeOnCanvas(exportCanvas, shape.shapeType, shape.shapeSizeX * scaleX, shape.shapeSizeY * scaleY); 
       exportCanvas.pop();
   }
 
@@ -770,13 +920,12 @@ function drawExportFrame(overallProgress) {
     if (pos) {
       const scaleX = exportCanvas.width / width;
       const scaleY = exportCanvas.height / height;
-      const strokeScale = (scaleX + scaleY) / 2;
       exportCanvas.push();
       exportCanvas.fill(spline.fillColor);
       exportCanvas.stroke(spline.strokeColor);
-      exportCanvas.strokeWeight(spline.strokeWeight * strokeScale);
+      exportCanvas.strokeWeight(spline.strokeWeight * ((scaleX + scaleY) / 2));
       exportCanvas.translate(pos.point.x * scaleX, pos.point.y * scaleY);
-      drawShapeOnCanvas(exportCanvas, spline.shapeType, spline.shapeSize * Math.max(scaleX, scaleY));
+      drawShapeOnCanvas(exportCanvas, spline.shapeType, spline.shapeSizeX * scaleX, spline.shapeSizeY * scaleY); 
       exportCanvas.pop();
     }
   }
@@ -791,7 +940,6 @@ function renderNextFrame() {
   if (exportProgress < exportTotalFrames) {
     drawExportFrame(exportProgress / exportTotalFrames);
     
-    // ** NEW: Update the HTML UI
     const progressPercent = (exportProgress / exportTotalFrames) * 100;
     progressBarFill.style.width = `${progressPercent}%`;
     exportPercentage.textContent = `${Math.round(progressPercent)}%`;
@@ -800,7 +948,6 @@ function renderNextFrame() {
     exportProgress++;
     setTimeout(renderNextFrame, 1000 / exportFPS);
   } else {
-    // ** Final UI update to 100%
     progressBarFill.style.width = '100%';
     exportPercentage.textContent = '100%';
     exportFrameCount.textContent = `Frame ${exportTotalFrames} of ${exportTotalFrames}`;
@@ -808,11 +955,11 @@ function renderNextFrame() {
   }
 }
   
-function drawShapeOnCanvas(canvas, type, size) {
+function drawShapeOnCanvas(canvas, type, sizeX, sizeY) { 
   switch (type) {
-    case 'circle': canvas.ellipse(0, 0, size); break;
-    case 'square': canvas.rectMode(canvas.CENTER); canvas.rect(0, 0, size, size); break;
-    case 'triangle': canvas.triangle(-size/2, size/2, size/2, size/2, 0, -size/2); break;
+    case 'circle': canvas.ellipse(0, 0, sizeX, sizeY); break;
+    case 'square': canvas.rectMode(canvas.CENTER); canvas.rect(0, 0, sizeX, sizeY); break;
+    case 'triangle': canvas.triangle(-sizeX/2, sizeY/2, sizeX/2, sizeY/2, 0, -sizeY/2); break;
   }
 }
 
@@ -849,7 +996,6 @@ function cancelExport() {
 }
 
 function cleanupExport() {
-  // ** NEW: Hide the HTML overlay
   if(exportOverlay) {
     exportOverlay.style.display = 'none';
   }
