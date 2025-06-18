@@ -76,4 +76,4 @@ Simply plug the webm into the control_video or control_images VACE input using a
 
 * **Author:** [WhatDreamsCost](https://github.com/WhatDreamsCost)
 * **Framework:** Built with [p5.js](https://p5js.org/).
-* **Additional Info:** I used DeepSeek Google Gemini to make both this project and even this README file.
+* **Additional Info:** I used DeepSeek and Google Gemini to make both this project and even this README file.
