@@ -29,6 +29,20 @@ Use it here for free: https://whatdreamscost.github.io/Spline-Path-Control/
 
 ## 🔄 Recent Updates
 
+* **6/18/25:**
+    * Added 'Clone' Button, you can now clone any object copying it's properties and shape
+    * Added 'Play Once' and a 'Loop Preview' toggle. You can now set the preview to either play once or to loop continuously.
+    * Added ability to drag and move entire splines. You can now click and drag entire splines to easily move them.
+    * Added extra control to the size. You can now set the X and Y size of any shape.
+    * Made it easier to move anchors. (You can now click anywhere on an anchor to move it instead of just then center)
+    * Changed Default Canvas Size
+    * Fixed Reset Canvas Size Button
+    * Added offset to newly created anchors to prevent overlapping.
+
+![Update 6-18 Image](https://github.com/user-attachments/assets/df05931d-3681-44a4-a3d4-0899a92c0f37)
+
+**If anyone has features they want added let me know!**
+
 * **6/17/25:**
     * Fixed splines looping in exported video. Now the animation will only play once in the exported video.
     * Made the export UI prettier 😎
