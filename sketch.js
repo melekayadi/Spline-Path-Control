@@ -26,6 +26,10 @@ let canvasOffset = { x: 0, y: 0 };
 let canvas;
 let appStartTime;
 
+// ** NEW: DOM elements for the export UI
+let exportOverlay, progressBarFill, exportPercentage, exportFrameCount;
+
+
 // =========
 // SETUP
 // =========
@@ -35,8 +39,13 @@ function setup() {
   pixelDensity(1);
   appStartTime = millis();
 
-  // *** NEW: Add drag and drop handling for background images ***
   canvas.drop(gotFile);
+
+  // ** NEW: Get references to the export UI elements
+  exportOverlay = document.getElementById('export-overlay');
+  progressBarFill = document.getElementById('progress-bar-fill');
+  exportPercentage = document.getElementById('export-percentage');
+  exportFrameCount = document.getElementById('export-frame-count');
 
   setupEventListeners();
   addNewSpline();
@@ -56,31 +65,25 @@ function setupEventListeners() {
   document.getElementById('updateCanvasSize').addEventListener('click', updateCanvasSize);
   document.getElementById('resetCanvasSize').addEventListener('click', resetCanvasSize);
 
-  // Selected spline/shape controls
   const controls = ['StartFrame', 'Duration', 'Size', 'Type', 'FillColor', 'StrokeColor', 'StrokeWeight', 'Tension', 'Easing'];
   controls.forEach(control => {
     document.getElementById(`selected${control}`).addEventListener('input', updateSelectedItem);
   });
 
-  // *** NEW: Add listeners for drag-over visual feedback ***
   const canvasContainer = document.getElementById('canvas-container');
   
-  // When a file is dragged over the canvas container
   canvasContainer.addEventListener('dragover', (e) => {
-    e.preventDefault(); // This is crucial to allow a drop
+    e.preventDefault();
     e.stopPropagation();
     canvasContainer.classList.add('dragging-over');
   });
 
-  // When a file leaves the canvas container area
   canvasContainer.addEventListener('dragleave', (e) => {
     e.preventDefault();
     e.stopPropagation();
     canvasContainer.classList.remove('dragging-over');
   });
 
-  // When a file is dropped (to remove the style)
-  // The actual file handling is done by canvas.drop(gotFile)
   canvasContainer.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -92,18 +95,10 @@ function setupEventListeners() {
 // DRAW
 // =========
 function draw() {
-  // If exporting, show a static progress screen and do nothing else.
-  if (isExporting) {
-    background(240);
-    fill(0);
-    noStroke();
-    textSize(16);
-    text(`Exporting Frame: ${exportProgress + 1} / ${exportTotalFrames}`, 20, 40);
-    text('Please wait, this may take a moment...', 20, 70);
-    return; // Stop the rest of the draw loop.
-  }
+  // The export UI is now handled by HTML/CSS, so the 'if (isExporting)'
+  // block has been removed from here. The canvas will continue to draw
+  // underneath the overlay.
 
-  // Normal draw loop
   background(240);
   if (backgroundImg) {
     image(backgroundImg, 0, 0, width, height);
@@ -136,7 +131,7 @@ function addNewSpline() {
     strokeColor: '#000000',
     strokeWeight: 0.5,
     tension: 0,
-    easing: 'linear', // Default easing function
+    easing: 'linear',
   };
   let settings = { ...defaultSettings };
 
@@ -161,21 +156,17 @@ function addNewSpline() {
   selectSpline(newSpline);
 }
 
-// --- MODIFIED: This function now inherits properties from the LAST CREATED SHAPE ---
 function addStaticShape() {
-  // Define the default properties for a static shape
   const defaultSettings = { 
     shapeSize: 10, 
-    shapeType: 'square',    // Default to square
-    fillColor: '#ffffff',   // Default to white
-    strokeColor: '#000000', // Default to black
-    strokeWeight: 1         // Default border width to 1
+    shapeType: 'square',
+    fillColor: '#ffffff',
+    strokeColor: '#000000',
+    strokeWeight: 1
   };
   let settings = { ...defaultSettings };
 
-  // Check if there are any existing static shapes
   if (staticShapes.length > 0) {
-    // If so, use the last created shape as the source for properties
     const sourceItem = staticShapes[staticShapes.length - 1]; 
     settings = {
       shapeSize: sourceItem.shapeSize, 
@@ -185,9 +176,7 @@ function addStaticShape() {
       strokeWeight: sourceItem.strokeWeight,
     };
   }
-  // If no static shapes exist, the defaultSettings will be used.
 
-  // Create the new shape with the determined settings
   const newShape = { ...settings, pos: createVector(width / 2, height / 2), isStatic: true };
   staticShapes.push(newShape);
   selectStaticShape(newShape);
@@ -280,7 +269,7 @@ function clearAll() {
   selectedSpline = null;
   selectedStaticShape = null;
   selectedPoint = null;
-  appStartTime = millis(); // Reset global timer
+  appStartTime = millis();
   document.getElementById('spline-controls').style.display = 'none';
   addNewSpline();
 }
@@ -402,7 +391,7 @@ function drawMovingShapes() {
   for (let spline of splines) {
     if (spline.points.length < 2) continue;
     const pos = getCurrentSplinePosition(spline);
-    if (!pos) continue; // If null is returned, the animation hasn't started, so don't draw.
+    if (!pos) continue;
     fill(spline.fillColor);
     stroke(spline.strokeColor);
     strokeWeight(spline.strokeWeight);
@@ -428,6 +417,7 @@ function drawDragIndicator() { /* ... */ }
 // ==============
 function mousePressed() {
   if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+  if (isExporting) return; // Prevent interaction when overlay is active
 
   for (let i = staticShapes.length - 1; i >= 0; i--) {
     const shape = staticShapes[i];
@@ -461,6 +451,7 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  if (isExporting) return;
   if (draggedStaticShape) {
     draggedStaticShape.pos.x = constrain(mouseX, 0, width);
     draggedStaticShape.pos.y = constrain(mouseY, 0, height);
@@ -527,37 +518,29 @@ function addPointToSpline() {
 // SPLINE & CANVAS MATH/LOGIC
 // ==============================
 
-// Apply the selected easing function to a time value (0-1)
 function applyEasing(t, easingType) {
   switch (easingType) {
-    case 'easeIn':
-      return t * t; // Quadratic ease-in
-    case 'easeOut':
-      return t * (2 - t); // Quadratic ease-out
-    case 'easeInOut':
-      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // Quadratic ease-in-out
-    case 'linear':
-    default:
-      return t; // No easing
+    case 'easeIn': return t * t;
+    case 'easeOut': return t * (2 - t);
+    case 'easeInOut': return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    case 'linear': default: return t;
   }
 }
 
-
 function getCurrentSplinePosition(spline) {
-  const fps = 60; // Assume live preview runs at a smooth 60fps for calculations
+  const fps = 60;
   const startDelayMs = (spline.startFrame / fps) * 1000;
   const totalTime = spline.duration * 1000;
   const globalElapsedTime = millis() - appStartTime;
 
   if (globalElapsedTime < startDelayMs) {
-    return null; // Animation hasn't started for this spline yet
+    return null;
   }
 
   const splineLocalTime = globalElapsedTime - startDelayMs;
   const currentTimeInLoop = splineLocalTime % totalTime;
   let progress = currentTimeInLoop / totalTime;
   
-  // Apply the selected easing function
   progress = applyEasing(progress, spline.easing);
 
   const targetDistance = progress * calculateSplineLength(spline);
@@ -701,36 +684,36 @@ function startExport() {
     return;
   }
 
-  // --- MODIFIED: More flexible browser support for video export ---
-  
-  // Array of possible video formats to check, in order of preference.
   const mimeTypes = [
-    'video/webm;codecs=vp9', // Preferred for Chrome/Edge
-    'video/webm;codecs=vp8', // Good fallback for Firefox
-    'video/webm',            // Generic fallback
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
   ];
 
   let supportedMimeType = null;
-  // Check if MediaRecorder API is available at all.
   if (window.MediaRecorder) {
-      // Loop through the list of MIME types.
       for (const mimeType of mimeTypes) {
-          // Check if the browser supports the current type.
           if (MediaRecorder.isTypeSupported(mimeType)) {
-              supportedMimeType = mimeType; // If it's supported, save it...
-              break;                        // ...and stop checking.
+              supportedMimeType = mimeType;
+              break;
           }
       }
   }
 
-  // If after checking all types, none were supported, show an alert.
   if (!supportedMimeType) {
     alert("Video export not supported in this browser. Please try a recent version of Chrome, Edge, or Firefox.");
     return;
   }
-  // --- END OF MODIFICATION ---
 
   if (isExporting) return;
+  isExporting = true;
+  
+  // ** NEW: Show and reset the HTML export UI
+  exportOverlay.style.display = 'flex';
+  progressBarFill.style.width = '0%';
+  exportPercentage.textContent = '0%';
+  exportFrameCount.textContent = `Frame 0 of ${exportTotalFrames}`;
+
 
   exportFPS = parseInt(document.getElementById('exportFPS').value);
   exportDuration = parseFloat(document.getElementById('exportSeconds').value);
@@ -744,13 +727,12 @@ function startExport() {
   exportCanvas.hide();
   exportStream = exportCanvas.elt.captureStream(exportFPS);
   
-  // Use the successfully found MIME type to create the MediaRecorder.
   mediaRecorder = new MediaRecorder(exportStream, { mimeType: supportedMimeType, videoBitsPerSecond: 2500000 });
   
   mediaRecorder.ondataavailable = e => e.data.size > 0 && recordedChunks.push(e.data);
   mediaRecorder.onstop = handleExportFinish;
   mediaRecorder.start();
-  isExporting = true;
+  
   renderNextFrame();
 }
   
@@ -773,16 +755,13 @@ function drawExportFrame(overallProgress) {
   for (const spline of splines) {
     const startDelayMs = (spline.startFrame / exportFPS) * 1000;
 
-    if (exportCurrentTimeMs < startDelayMs) {
-      continue; // Skip this spline if its start time hasn't been reached
-    }
+    if (exportCurrentTimeMs < startDelayMs) continue;
 
     const splineLocalTime = exportCurrentTimeMs - startDelayMs;
     const splineDurationMs = spline.duration * 1000;
-    const splineTimeInLoop = splineLocalTime % splineDurationMs;
-    let splineProgress = splineTimeInLoop / splineDurationMs;
-
-    // Apply easing for export
+    
+    let splineProgress = constrain(splineLocalTime / splineDurationMs, 0, 1);
+    
     splineProgress = applyEasing(splineProgress, spline.easing);
 
     const totalLength = calculateSplineLength(spline);
@@ -811,9 +790,20 @@ function renderNextFrame() {
   if (!isExporting) return;
   if (exportProgress < exportTotalFrames) {
     drawExportFrame(exportProgress / exportTotalFrames);
+    
+    // ** NEW: Update the HTML UI
+    const progressPercent = (exportProgress / exportTotalFrames) * 100;
+    progressBarFill.style.width = `${progressPercent}%`;
+    exportPercentage.textContent = `${Math.round(progressPercent)}%`;
+    exportFrameCount.textContent = `Frame ${exportProgress} of ${exportTotalFrames}`;
+
     exportProgress++;
     setTimeout(renderNextFrame, 1000 / exportFPS);
   } else {
+    // ** Final UI update to 100%
+    progressBarFill.style.width = '100%';
+    exportPercentage.textContent = '100%';
+    exportFrameCount.textContent = `Frame ${exportTotalFrames} of ${exportTotalFrames}`;
     finishExport();
   }
 }
@@ -859,6 +849,11 @@ function cancelExport() {
 }
 
 function cleanupExport() {
+  // ** NEW: Hide the HTML overlay
+  if(exportOverlay) {
+    exportOverlay.style.display = 'none';
+  }
+
   exportCanvas?.remove();
   exportStream?.getTracks().forEach(track => track.stop());
   exportCanvas = null;

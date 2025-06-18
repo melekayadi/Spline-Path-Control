@@ -7,9 +7,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Main App Controls -->
   <div class="controls">
-    <h2>Spline Editor</h2>
-    
     <div class="main-content">
       <!-- Spline Controls Sidebar -->
       <div id="spline-controls" class="spline-controls">
@@ -96,9 +95,19 @@
       </div>
       
       <div class="canvas-area">
-        <!-- Updated canvas container structure -->
+        <!-- The p5.js canvas and export overlay will be placed here -->
         <div id="canvas-container">
-          <!-- The canvas will be created here by p5.js -->
+            <!-- ** MOVED: Export Overlay UI is now inside the canvas container ** -->
+            <div id="export-overlay">
+              <div class="export-dialog">
+                <h3 id="export-title">Creating Video...</h3>
+                <div class="progress-bar-container">
+                  <div id="progress-bar-fill"></div>
+                </div>
+                <p id="export-percentage">0%</p>
+                <p id="export-frame-count">Frame 0 of 0</p>
+              </div>
+            </div>
         </div>
         
         <!-- Spline Management Buttons -->
@@ -106,14 +115,13 @@
         <button id="newSpline">New Spline</button>
         <button id="deleteSpline">Delete Spline</button>
         <button id="addPoint">Add Point</button>
-        <button id="removePoint">Remove Point/Anchor</button> <!-- Renamed for clarity -->
+        <button id="removePoint">Remove Point/Anchor</button>
         <button id="addShape">Add Anchor</button>
         <button id="clearAll">Clear All</button>
       </div>
         
         <!-- Export Controls -->
         <div class="export-container">
-          <!-- *** NEW: Left panel for controls *** -->
           <div class="export-left-panel">
             <div class="export-settings">
               <div class="control-group">
@@ -131,18 +139,17 @@
             </div>
           </div>
           
-          <!-- *** MOVED: Instructions Box is now a sibling *** -->
           <div class="info-box">
             <b>Tips:</b><br>
             • You can drag and drop images on the canvas.<br>
             • Lower 'Seconds' to make shapes move faster.<br>
-             • Raise 'Seconds' to make shapes move slower.<br>
-            
+            • Raise 'Seconds' to make shapes move slower.<br>
             • Increase 'Tension' for curvier splines.
           </div>
         </div>
       </div>
     </div>
   </div>
+
 </body>
 </html>

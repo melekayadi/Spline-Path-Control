@@ -97,7 +97,7 @@ h3 {
   max-width: 100%;
   margin: 0;
   background-color: var(--bg-main);
-  border-radius: 8px;
+  border-radius: 0; /* Changed from 8px to 0 */
   box-shadow: 2px 2px 8px rgba(0,0,0,0.03);
   overflow: hidden; 
   transition: all 0.2s ease-in-out;
@@ -133,7 +133,7 @@ h3 {
 }
 
 .control-group label {
-  min-width: 75px; /* Increased from 70px to align all inputs */
+  min-width: 75px;
   font-weight: 500;
   color: var(--text-secondary);
   font-size: 14px;
@@ -199,18 +199,16 @@ button:active {
   gap: 10px;
 }
 
-/* --- MODIFIED: Export Section Layout --- */
 .export-container {
   display: flex;
   flex-direction: row; 
   align-items: stretch;
-  justify-content: space-between; /* This pushes the two children to opposite ends */
+  justify-content: space-between;
   gap: 20px; 
   padding-top: 15px;
   border-top: 1px solid var(--border-color);
 }
 
-/* *** NEW: Left Panel for Controls *** */
 .export-left-panel {
   display: flex;
   flex-direction: column;
@@ -225,7 +223,6 @@ button:active {
   gap: 15px;
 }
 
-/* --- MODIFIED: Info Box Styling --- */
 .info-box {
   background-color: var(--bg-controls);
   border: 1px solid var(--border-color);
@@ -234,10 +231,9 @@ button:active {
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
-  /* flex-grow: 1;  <-- THIS LINE WAS REMOVED */
 }
 
-/* Button Color Themes */
+/* --- Button Color Themes --- */
 #exportVideo, #updateCanvasSize, #newSpline, #addPoint, #addShape { 
   background-color: var(--accent-primary); color: white; 
 }
@@ -260,7 +256,71 @@ button:active {
   background-color: var(--accent-neutral-hover); border-color: #ced4da;
 }
 
-/* --- End of Styles --- */
 .controls > h2 {
   display: none;
+}
+
+
+/* --- ** MODIFIED: Export Overlay Styles ** --- */
+#export-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(244, 247, 249, 0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  padding: 15px;
+  /* border-radius was removed from here to fix the corner issue */
+}
+
+.export-dialog {
+  background-color: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+.export-dialog h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.progress-bar-container {
+  background-color: #eef2f5;
+  border-radius: 6px;
+  height: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+#progress-bar-fill {
+  background-color: var(--accent-primary);
+  width: 0%;
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.1s linear;
+}
+
+#export-percentage {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+#export-frame-count {
+  font-size: 14px;
+  color: #888;
+  margin-top: 0;
 }
