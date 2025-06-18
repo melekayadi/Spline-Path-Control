@@ -30,6 +30,10 @@ Use it here for free: https://whatdreamscost.github.io/Spline-Path-Control/
 ## 🔄 Recent Updates
 
 * **6/17/25:**
+    * Fixed splines looping in exported video. Now the animation will only play once in the exported video.
+    * Made the export UI prettier 😎
+
+* **6/17/25:**
     * Added **Start Frame** control to delay the beginning of a spline's animation.
     * Added **Easing Functions** (Linear, Ease-in, Ease-out, Ease-in-out) for smoother animations.
     * Fixed a CSS alignment issue in the control panel for a cleaner UI.
